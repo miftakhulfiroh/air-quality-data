@@ -5,8 +5,8 @@ import seaborn as sns
 
 st.title("Dashboard Analisis Kualitas Udara di Stasiun Changphing")
 st.sidebar.title("Dashboard by Miftakhul Ma'firoh")
-st.sidebar.markdown("[GitHub]()")
-st.sidebar.markdown("[LinkedIn]()")
+st.sidebar.markdown("[GitHub](https://github.com/miftakhulfiroh)")
+st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/miftakhul-mafiroh/)")
 
 # Load dataset
 @st.cache_data
