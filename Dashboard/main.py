@@ -5,13 +5,13 @@ import seaborn as sns
 
 st.title("Dashboard Analisis Kualitas Udara di Stasiun Changphing")
 st.sidebar.title("Dashboard by Miftakhul Ma'firoh")
-st.sidebar.markdown("[GitHub](https://github.com/miftakhulfiroh)")
-st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/miftakhul-mafiroh/)")
+st.sidebar.markdown("[GitHub]()")
+st.sidebar.markdown("[LinkedIn]()")
 
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv("Dashboard/data_clean.csv")
+    df = pd.read_csv("data_clean.csv")
     
     # Konversi kolom 'month' ke format angka jika masih berupa teks
     if df['month'].dtype == 'object':
@@ -26,27 +26,58 @@ df = load_data()
 
 # Sidebar menu
 st.sidebar.title("Dashboard Polusi Udara")
-menu = st.sidebar.selectbox("Pilih Visualisasi", ["Tren PM2.5 & PM10", "Kondisi CO Tahun 2016"])
+menu = st.sidebar.selectbox(
+    "Pilih Visualisasi", ["Tren PM2.5 & PM10", "Kondisi CO Tahun 2016"])
 
 # 1. Tren PM2.5 dan PM10 tiap tahun
 if menu == "Tren PM2.5 & PM10":
     st.title("Tren Konsentrasi PM2.5 dan PM10")
-    
-    yearly_trend = df.groupby("year")[['PM2.5', 'PM10']].mean()
+
+    # Add year range selector
+    year_range = st.slider(
+        "Pilih Rentang Tahun",
+        min_value=int(df['year'].min()),
+        max_value=int(df['year'].max()),
+        value=(int(df['year'].min()), int(df['year'].max()))
+    )
+
+    # Filter data based on selected years
+    filtered_df = df[(df['year'] >= year_range[0]) &
+                     (df['year'] <= year_range[1])]
+    yearly_trend = filtered_df.groupby("year")[['PM2.5', 'PM10']].mean()
+
+    # Create plot
     plt.figure(figsize=(10, 5))
     sns.lineplot(data=yearly_trend, markers=True)
     plt.xlabel("Tahun")
     plt.ylabel("Konsentrasi (µg/m³)")
-    plt.title("Tren Rata-rata PM2.5 dan PM10 per Tahun")
+    plt.title(
+        f"Tren Rata-rata PM2.5 dan PM10 ({year_range[0]}-{year_range[1]})")
     plt.legend(["PM2.5", "PM10"])
     st.pyplot(plt)
+
+    # Add summary statistics
+    st.subheader("Statistik Ringkasan")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Rata-rata PM2.5",
+            f"{yearly_trend['PM2.5'].mean():.2f} µg/m³"
+        )
+
+    with col2:
+        st.metric(
+            "Rata-rata PM10",
+            f"{yearly_trend['PM10'].mean():.2f} µg/m³"
+        )
 
 # 2. Kondisi Gas Polutan CO di Changping Tahun 2016
 elif menu == "Kondisi CO Tahun 2016":
     st.title("Kondisi Gas Polutan CO di Stasiun Changping (2016)")
     df_2016 = df[df['year'] == 2016]
     monthly_co = df_2016.groupby("month")['CO'].mean()
-    
+
     plt.figure(figsize=(10, 5))
     sns.barplot(x=monthly_co.index, y=monthly_co.values, palette="Blues")
     plt.xlabel("Bulan")
