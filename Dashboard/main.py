@@ -11,7 +11,7 @@ st.sidebar.markdown("[LinkedIn]()")
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv("Dashboard/data_clean.csv")
+    df = pd.read_csv("data_clean.csv")
     
     # Konversi kolom 'month' ke format angka jika masih berupa teks
     if df['month'].dtype == 'object':
@@ -76,10 +76,19 @@ if menu == "Tren PM2.5 & PM10":
 elif menu == "Kondisi CO Tahun 2016":
     st.title("Kondisi Gas Polutan CO di Stasiun Changping (2016)")
     df_2016 = df[df['year'] == 2016]
-    monthly_co = df_2016.groupby("month")['CO'].mean()
+    df_2016.groupby(by="year").agg({"CO": ["mean"]})
+    order_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    df['month'] =pd.Categorical(df['month'], categories=order_month, ordered=True)
+    pd.pivot_table(data=df_2016,
+               observed=True,
+               index='month',
+               columns='year',
+               values=['CO'],
+               aggfunc='mean')
+                
 
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x=monthly_co.index, y=monthly_co.values, palette="Blues")
+    plt.figure(figsize=(10, 6))
+    plt.bar(df_2016['month'], df_2016['CO'], label='CO', color='blue')
     plt.xlabel("Bulan")
     plt.ylabel("Konsentrasi CO (mg/m³)")
     plt.title("Rata-rata Konsentrasi CO per Bulan di 2016")
